@@ -9,14 +9,13 @@
 #define METABALL
 
 #include "jdw_vector2d.h"
+#include "jdw_circle.h"
 
-class MetaBall {
+class MetaBall: public JDW_Circle<dV2> {
 public:
 	MetaBall();
 	~MetaBall();
 
-	dV2 pos; // Positons
-	double rad; // Radius
 	double ang; // Angle
 	double dis; // Distance from origo
 	int dir; // Leaving or nearing origo

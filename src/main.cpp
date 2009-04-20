@@ -14,7 +14,7 @@
 #include "jdw_vector2d.h"
 #include "jdw_improvedperlinnoise.h"
 #include "jdw_image.h"
-#include "jdw_screen.h"
+//#include "jdw_screen.h"
 #include "SceneBalls.h"
 #include "SceneJunk.h"
 #include "jdw_list.h"

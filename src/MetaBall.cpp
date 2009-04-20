@@ -7,10 +7,10 @@
 
 #include "MetaBall.h"
 #include <math.h>
+#include <iostream>
 
-MetaBall::MetaBall() {
-	pos = dV2();
-	rad = 5.0;
+MetaBall::MetaBall()
+: JDW_Circle<dV2>() {
 	ang = 0.0;
 	dir = 1;
 	dis = 0.0f;
@@ -21,5 +21,5 @@ MetaBall::~MetaBall() {
 }
 
 double MetaBall::Value(const dV2 in_pos) {
-	return (double)(rad / sqrt((in_pos.x - pos.x) * (in_pos.x - pos.x) + (in_pos.y - pos.y) * (in_pos.y - pos.y)));
+	return GetRadius() / GetPos().GetDist(dV2(in_pos.x, in_pos.y));
 }
