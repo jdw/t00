@@ -1,10 +1,10 @@
 ifeq ($(DEBUG),yes)
-	CXXFLAGS=-Wall -g
-	LDFLAGS=-Wall -g -framework CoreServices -framework Cocoa -framework OpenGL
+	CXXFLAGS=-Wall -g  
+	LDFLAGS=-Wall -g -framework CoreServices -framework Cocoa -framework OpenGL -lpng12
 	DEFENITIONS= -D DEBUG=1
 else
 	CXXFLAGS=-Wall
-	LDFLAGS=-O3 -Wall -framework CoreServices -framework Cocoa -framework OpenGL
+	LDFLAGS=-O3 -Wall -framework CoreServices -framework Cocoa -framework OpenGL -lpng12
 	DEFENITIONS=
 endif
 
@@ -31,7 +31,10 @@ pixeltoaster:
 	cd $(PTDIR) && make $(PTMAKEVAR)
 	cp $(PTDIR)/PixelToaster*h $(HOMEINC)
 #	endif
-	
+
+readpng:
+	$(CC) $(CXXFLAGS) -c src/readpng.c -o src/readpng.o	
+
 $(PROJECT): $(OBJFILES)
 	$(CC) $(INCLUDES) $(OBJFILES) $(wildcard $(PTDIR)/*.o) $(LDFLAGS) -o $(@)
 

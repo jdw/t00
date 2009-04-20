@@ -5,34 +5,76 @@
  *      Author: jdw
  */
 
+#include <iostream>
+
+#include "jdw_misc.h"
+#include "jdw_test.h"
 #include "PixelToaster.h"
 #include "jdw_vector3d.h"
 #include "jdw_vector2d.h"
 #include "jdw_improvedperlinnoise.h"
+#include "jdw_image.h"
+#include "jdw_screen.h"
+#include "SceneBalls.h"
+#include "SceneJunk.h"
+#include "jdw_list.h"
 
 using namespace PixelToaster;
 
+namespace SceneNowPlaying {
+	enum Enum {
+		JUNK = 0,
+		BALL,
+
+		MAX
+	};
+}
+
 int main() {
-    const iV2 size = iV2(320, 240);
-    Display display("t00", size.x, size.y, Output::Fullscreen);
-    Noise* pNoise = new Noise();
+    iV2 size = iV2(640, 480);
+	Timer timer;
+	double t0 = timer.time();
+    Display display( "t00", size.x, size.y, Output::Windowed);
+    SceneNowPlaying::Enum current = SceneNowPlaying::BALL;
+    JDW_Scene* pScene;
+    pScene = new SceneBalls(size);
 
-	vector<Pixel> pixels(size.x * size.y);
+    while (display.open()) {
+    	if (timer.time() - t0 < FPS) timer.wait(FPS - (timer.time() - t0));
+    	t0 = timer.time();
 
-    while (display.open())
-    {
-        unsigned int index = 0;
+    	switch (current) {
+			case SceneNowPlaying::JUNK: {
+				((SceneJunk*)pScene)->SetDeltaTime(t0);
+				((SceneJunk*)pScene)->UpdateTotalTime();
+				((SceneJunk*)pScene)->Update();
+				display.update(((SceneJunk*)pScene)->GetImage()->GetPixels());
 
-        for ( int y = 0; y < height; ++y )
-        {
-            for ( int x = 0; x < width; ++x )
-            {
-                pixels[index].r = pNoise->Noise(x, y, 0);
+				if (pScene->GetTotalTime() > 600.0) {
+					delete pScene;
+					pScene = new SceneBalls(size);
+					current = SceneNowPlaying::BALL;
+				}
+			} break;
 
-				++index;
-            }
-        }
+			case SceneNowPlaying::BALL: {
+				((SceneBalls*)pScene)->SetDeltaTime(t0);
+				((SceneBalls*)pScene)->UpdateTotalTime();
+				((SceneBalls*)pScene)->Update();
+				display.update(((SceneBalls*)pScene)->GetImage()->GetPixels());
 
-		display.update( pixels );
+				if (pScene->GetTotalTime() > 600.0) {
+					delete pScene;
+					pScene = new SceneJunk(size);
+					current = SceneNowPlaying::JUNK;
+				}
+			} break;
+
+			case SceneNowPlaying::MAX: {
+
+			} break;
+		}
     }
+
+    return 0;
 }
