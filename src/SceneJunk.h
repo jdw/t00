@@ -19,10 +19,8 @@ public:
 	void Update();
 
 private:
-	Noise* pNoise;
-	Image* pR;
-	//Image* pG;
-	//Image* pB;
+	boost::shared_ptr<Noise> spNoise;
+	boost::shared_ptr<JDW_Image<JDW_Pixel, JDW_Pixel> > spPloj;
 };
 
 #endif
