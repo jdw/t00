@@ -1,10 +1,10 @@
 ifeq ($(DEBUG),yes)
-	CXXFLAGS=-Wall -g  
-	LDFLAGS=-Wall -g -framework CoreServices -framework Cocoa -framework OpenGL -lpng12
+	CXXFLAGS=-Wall -g -std=c++98
+	LDFLAGS=-framework CoreServices -framework Cocoa -framework OpenGL
 	DEFENITIONS= -D DEBUG=1
 else
-	CXXFLAGS=-Wall
-	LDFLAGS=-O3 -Wall -framework CoreServices -framework Cocoa -framework OpenGL -lpng12
+	CXXFLAGS=-Wall -g -std=c++98
+	LDFLAGS=-framework CoreServices -framework Cocoa -framework OpenGL
 	DEFENITIONS=
 endif
 
@@ -36,7 +36,7 @@ readpng:
 	$(CC) $(CXXFLAGS) -c src/readpng.c -o src/readpng.o	
 
 $(PROJECT): $(OBJFILES)
-	$(CC) $(INCLUDES) $(OBJFILES) $(wildcard $(PTDIR)/*.o) $(LDFLAGS) -o $(@)
+	$(CC) $(LDFLAGS) $(INCLUDES) $(OBJFILES) $(wildcard $(PTDIR)/*.o) -o $(@)
 
 $(SRCPATH)/%.o: $(SRCPATH)/%.cpp
 	$(CC) $(CXXFLAGS) $(INCLUDES) $(DEFENITIONS) -c $< -o $@
