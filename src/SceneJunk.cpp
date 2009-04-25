@@ -9,77 +9,79 @@
 #include "SceneJunk.h"
 #include <math.h>
 #include "jdw_improvedperlinnoise.h"
-#include <iostream>
 #include "jdw_vector3d.h"
+#include "jdw_rectangle.h"
+#include "jdw_image.h"
+
+#define AMOUNTOFSQUARES 3
 
 SceneJunk::SceneJunk(const iV2& in_size)
 : JDW_Scene2d(SceneType::TWOD, in_size) {
-	pNoise = new Noise();
-
-	pR = new Image(iV2(pScreen->GetSize().x / 3, pScreen->GetSize().y / 3));
-	//pG = new Image(iV2(pScreen->GetSize().x / 3, pScreen->GetSize().y / 3));
-	//pB = new Image(iV2(pScreen->GetSize().x / 3, pScreen->GetSize().y / 3));
-
+	spNoise = boost::shared_ptr<Noise>(new Noise());
+	spPloj = boost::shared_ptr<JDW_Image<JDW_Pixel, JDW_Pixel> >(new JDW_Image<JDW_Pixel, JDW_Pixel>(iV2(in_size.x / 2, in_size.y / 2)));
+	spPloj->Fill(JDW_Pixel(0, 170, 0));
+	spPloj->SetAlpha(128);
 }
 
 SceneJunk::~SceneJunk() {
-	delete pR;
-	delete pNoise;
 }
 
 void SceneJunk::Update() {
-	PixelToaster::TrueColorPixel tmp_clr;
-	dV3 tmp_v(-1.0, -1.0, sin(double(GetTotalTime()) / double(1000)));
+	spScreen->Fill(JDW_Pixel());
+	dRect tmp_rect = dRect();
+	tmp_rect.SetSize(dV2(200, 200));
+	Pixel tmp_clr;
+	dV3 tmp_v(-1.0, -1.0, sin(double(GetTotalTime())));
 	double t;
 
-	iV2 tmp_rOffset = iV2(0,0);
-	iV2 tmp_gOffset = iV2(50, 50);
-	iV2 tmp_bOffset = iV2(50, 50);
-	iV2 tmp_size = pR->GetSize();
+	for (int i = 0; i < AMOUNTOFSQUARES; ++i) {
+		tmp_rect.SetPos(dV2(spScreen->GetSize().x / 5 + i * sin(GetTotalTime()) * 100, spScreen->GetSize().y / 7 + i * 100));
+		tmp_clr.r = tmp_clr.g = tmp_clr.b = 0;
 
-	for (int y = tmp_rOffset.y; y < tmp_rOffset.y + tmp_size.y; ++y) {
-		for (int x = tmp_rOffset.x; x < tmp_rOffset.x + tmp_size.x; ++x) {
-			tmp_v.x = tmp_v.y = -1.0;
-			tmp_v.x = 2 * double(x) / double(tmp_size.x);
-			tmp_v.y = 2 * double(y) / double(tmp_size.y);
-			t = pNoise->Noise(tmp_v.x, tmp_v.y, tmp_v.z) * 70.0;
+		for (int y = tmp_rect.GetPos().y; y < tmp_rect.GetPos().y + tmp_rect.GetSize().y; ++y) {
+			for (int x = tmp_rect.GetPos().x; x < tmp_rect.GetPos().x + tmp_rect.GetSize().x; ++x) {
+				if (x < 0 || y < 0) continue;
+				tmp_v.x = tmp_v.y = -1.0;
+				tmp_v.x = 2 * double(x) / double(tmp_rect.GetSize().x);
+				tmp_v.y = 2 * double(y) / double(tmp_rect.GetSize().y);
+				t = spNoise->Noise(tmp_v.x, tmp_v.y, tmp_v.z) * 30.0;
 
-			tmp_clr.r = 128 + 128 * sin(t);
-			pR->PutPixel(iV2(x, y), tmp_clr);
+				switch (i % 3) {
+					case 0: {
+						tmp_clr.r = 128 + 128 * sin(t);
+						tmp_clr.r = (tmp_clr.r == 0)? 1: tmp_clr.r;
+					} break;
 
+					case 1: {
+						tmp_clr.g = 128 + 128 * sin(t);
+						tmp_clr.g = (tmp_clr.g == 0)? 1: tmp_clr.g;
+					} break;
+
+					case 2: {
+						tmp_clr.b = 128 + 128 * sin(t);
+						tmp_clr.b = (tmp_clr.b == 0)? 1: tmp_clr.b;
+					} break;
+				}
+
+				spScreen->PutPixel(iV2(x, y), tmp_clr, JDW_PixelDrawMode::ADD);
+
+			}
 		}
 	}
-/*
-	tmp_clr.r = tmp_clr.g = tmp_clr.b = 0;
-	tmp_size = pG->GetSize();
-	for (int y = 0; y < tmp_size.y; ++y) {
-		for (int x = 0; x < tmp_size.x; ++x) {
-			tmp_v.x = tmp_v.y = -1.0;
-			tmp_v.x = 2 * double(tmp_gOffset.x - x) / double(tmp_gOffset.y - tmp_size.x);
-			tmp_v.y = 2 * double(tmp_gOffset.y - y) / double(tmp_gOffset.y - tmp_size.y);
-			t = pNoise->Noise(tmp_v.x, tmp_v.y, tmp_v.z) * 30.0;
 
-			tmp_clr.g = 128 + 128 * sin(t);
-			pG->PutPixel(iV2(x, y), tmp_clr);
-		}
+	for (int i = 0; i < AMOUNTOFSQUARES; ++i) {
+		tmp_rect.SetPos(dV2(spScreen->GetSize().x / 5 + i * sin(GetTotalTime()) * 100, spScreen->GetSize().y / 7 + i * 100));
+
+		spScreen->DrawLine(iV2(tmp_rect.GetPos().x, tmp_rect.GetPos().y - 1),
+		                   iV2(tmp_rect.GetPos().x + tmp_rect.GetSize().x, tmp_rect.GetPos().y - 1), JDW_Pixel(255,255,255), JDW_PixelDrawMode::ONBLACKONLY);
+		spScreen->DrawLine(iV2(tmp_rect.GetPos().x, tmp_rect.GetPos().y + tmp_rect.GetSize().y),
+		                   iV2(tmp_rect.GetPos().x + tmp_rect.GetSize().x, tmp_rect.GetPos().y + tmp_rect.GetSize().y), JDW_Pixel(255,255,255), JDW_PixelDrawMode::ONBLACKONLY);
+		spScreen->DrawLine(iV2(tmp_rect.GetPos().x - 1, tmp_rect.GetPos().y),
+		                   iV2(tmp_rect.GetPos().x - 1, tmp_rect.GetPos().y + tmp_rect.GetSize().y), JDW_Pixel(255,255,255), JDW_PixelDrawMode::ONBLACKONLY);
+		spScreen->DrawLine(iV2(tmp_rect.GetPos().x + tmp_rect.GetSize().x + 1, tmp_rect.GetPos().y),
+		                   iV2(tmp_rect.GetPos().x + tmp_rect.GetSize().x + 1, tmp_rect.GetPos().y + tmp_rect.GetSize().y), JDW_Pixel(255,255,255), JDW_PixelDrawMode::ONBLACKONLY);
+
 	}
 
-	tmp_clr.r = tmp_clr.g = tmp_clr.b = 0;
-	tmp_size = pB->GetSize();
-	for (int y = 0; y < tmp_size.y; ++y) {
-		for (int x = 0; x < tmp_size.x; ++x) {
-			tmp_v.x = tmp_v.y = -1.0;
-			tmp_v.x = 2 * double(tmp_bOffset.x - x) / double(tmp_bOffset.y - tmp_size.x);
-			tmp_v.y = 2 * double(tmp_bOffset.y - y) / double(tmp_bOffset.y - tmp_size.y);
-			t = pNoise->Noise(tmp_v.x, tmp_v.y, tmp_v.z) * 50.0;
-
-			tmp_clr.b = 128 + 128 * sin(t);
-			pB->PutPixel(iV2(x, y), tmp_clr);
-		}
-	}
-*/
-	pScreen->Blit(tmp_rOffset, pR);
-	//pScreen->Blit(tmp_gOffset, pG);
-//	pScreen->Blit(tmp_bOffset, pB);
-
+	spScreen->Blit(iV2(spScreen->GetSize().x / 4, spScreen->GetSize().y / 4), spPloj.get(), JDW_PixelDrawMode::ALPHA);
 }
